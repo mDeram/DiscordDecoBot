@@ -11,7 +11,6 @@ class Config {
         if (args[0] != DECO) { return false; }
 
         this.args = {
-            deco: true,
             force: false,
             ulti: false,
             cancel: false,
