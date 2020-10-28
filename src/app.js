@@ -1,4 +1,6 @@
 require('dotenv').config();
+const tc = require('./time_conversion.js');
+
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
@@ -6,18 +8,7 @@ const config = require('./configs/discord.js');
 
 const UserManager = require('./user_manager.js');
 const UserDeco = require('./user_deco.js');
-
 const InputManager = require('./input_manager.js');
-
-//const tc = require('./time_conversion.js');
-function min_to_sec(m) { return m*60; }
-function min_to_milli(m) { return sec_to_milli(min_to_sec(m)); }
-
-function sec_to_milli(s) { return s*1000; }
-function sec_to_min(s) { return s/60; }
-
-function milli_to_sec(mi) { return mi/1000; }
-function milli_to_min(mi) { return milli_to_sec(sec_to_min(mi)); }
 
 const CANCEL_NOTHING_MESSAGE = 'Nothing to cancel';
 
@@ -61,7 +52,7 @@ function handle_deco(msg, args) {
         let user_to_deco = new UserDeco(
             user_manager,
             msg,
-            min_to_milli(args.time),
+            tc.min_to_milli(args.time),
             args.force,
             args.ulti
         );

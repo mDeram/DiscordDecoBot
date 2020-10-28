@@ -1,27 +1,19 @@
-//const tc = require('./time_conversion.js');
-function min_to_sec(m) { return m*60; }
-function min_to_milli(m) { return sec_to_milli(min_to_sec(m)); }
+const tc = require('./time_conversion.js');
 
-function sec_to_milli(s) { return s*1000; }
-function sec_to_min(s) { return s/60; }
-
-function milli_to_sec(mi) { return mi/1000; }
-function milli_to_min(mi) { return milli_to_sec(sec_to_min(mi)); }
-
-let WARNING_TIME = sec_to_milli(30);
-let FORCE_DELAY = sec_to_milli(5);
-let FORCE_DURATION = min_to_milli(10);
+let WARNING_TIME = tc.sec_to_milli(30);
+let FORCE_DELAY = tc.sec_to_milli(5);
+let FORCE_DURATION = tc.min_to_milli(10);
 
 if (process.env.DEBUG == true) {
-    WARNING_TIME = sec_to_milli(10);
-    FORCE_DELAY = sec_to_milli(5);
-    FORCE_DURATION = sec_to_milli(10);
+    WARNING_TIME = tc.sec_to_milli(10);
+    FORCE_DELAY = tc.sec_to_milli(5);
+    FORCE_DURATION = tc.sec_to_milli(10);
 }
 
 const REPLY_MESSAGE = (minutes) => `I'll disconnect you in ${minutes} minutes`;
 const CANCEL_MESSAGE = 'I canceled your disconnection succesfully! Have fun!';
 const CANCEL_IMPOSSIBLE_MESSAGE = 'You\'re in ultimate force mode, I can\'t cancel...';
-const WARNING_MESSAGE = 'You\'ll be disconnected in ' + milli_to_sec(WARNING_TIME) + ' seconds';
+const WARNING_MESSAGE = 'You\'ll be disconnected in ' + tc.milli_to_sec(WARNING_TIME) + ' seconds';
 const DISCONNECT_MESSAGE = 'You asked for it, see you';
 
 class UserDeco {
@@ -40,7 +32,7 @@ class UserDeco {
         this.timeout = setTimeout(() => { callback.bind(this)(); }, time);
     }
     init() {
-        this.msg.reply(REPLY_MESSAGE(milli_to_min(this.disconnect_in)));
+        this.msg.reply(REPLY_MESSAGE(tc.milli_to_min(this.disconnect_in)));
 
         const can_warn = this.disconnect_in > 2*WARNING_TIME;
         if (can_warn) {
