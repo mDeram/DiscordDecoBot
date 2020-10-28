@@ -8,18 +8,25 @@ function sec_to_min(s) { return s/60; }
 function milli_to_sec(mi) { return mi/1000; }
 function milli_to_min(mi) { return milli_to_sec(sec_to_min(mi)); }
 
-const WARNING_TIME = sec_to_milli(30);
-const FORCE_DELAY = sec_to_milli(5);
-// const FORCE_DURATION = min_to_milli(10);
-const FORCE_DURATION = sec_to_milli(15);
+let WARNING_TIME = sec_to_milli(30);
+let FORCE_DELAY = sec_to_milli(5);
+let FORCE_DURATION = min_to_milli(10);
+
+if (process.env.DEBUG == true) {
+    WARNING_TIME = sec_to_milli(10);
+    FORCE_DELAY = sec_to_milli(5);
+    FORCE_DURATION = sec_to_milli(10);
+}
 
 const REPLY_MESSAGE = (minutes) => `I'll disconnect you in ${minutes} minutes`;
+const CANCEL_MESSAGE = 'I canceled your disconnection succesfully! Have fun!';
+const CANCEL_IMPOSSIBLE_MESSAGE = 'You\'re in ultimate force mode, I can\'t cancel...';
 const WARNING_MESSAGE = 'You\'ll be disconnected in ' + milli_to_sec(WARNING_TIME) + ' seconds';
 const DISCONNECT_MESSAGE = 'You asked for it, see you';
 
 class UserDeco {
     constructor(manager, msg, time, force, ulti) {
-        let init_time = Date.now();
+        const init_time = Date.now();
         this.manager = manager;
         this.msg = msg;
         this.disconnect_in = time;
@@ -35,9 +42,9 @@ class UserDeco {
     init() {
         this.msg.reply(REPLY_MESSAGE(milli_to_min(this.disconnect_in)));
 
-        let is_warning_possible = this.disconnect_in > 2*WARNING_TIME;
-        if (is_warning_possible) {
-            let time_before_warning = this.disconnect_in - WARNING_TIME;
+        const can_warn = this.disconnect_in > 2*WARNING_TIME;
+        if (can_warn) {
+            const time_before_warning = this.disconnect_in - WARNING_TIME;
             this.setTimeout(this.warning, time_before_warning);
         } else {
             this.setTimeout(this.deco, this.disconnect_in);
@@ -51,10 +58,20 @@ class UserDeco {
     deco() {
         this.disconnect();
         this.is_in_force = true;
-        this.destroyIfValid();
+
+        const can_destroy = this.force_level == 0 || !this.isForceTimeValid()
+        if (can_destroy) {
+            this.destroy();
+        }
     }
     cancel() {
-
+        if (this.force_level == 2) {
+            this.msg.reply(CANCEL_IMPOSSIBLE_MESSAGE);
+        } else {
+            this.clearTimeout();
+            this.msg.reply(CANCEL_MESSAGE);
+            destroy();
+        }
     }
     isInVoiceChannel() {
         return this.msg.member.voice.channel != null;
@@ -71,9 +88,8 @@ class UserDeco {
     hasDisconnected() {
         this.last_deconnection_time = Date.now();
 
-        if (this.is_in_force && this.timeout != null) {
-            clearTimeout(this.timeout);
-            this.timeout = null;
+        if (this.is_in_force) {
+            this.clearTimeout();
         }
     }
     disconnect() {
@@ -86,9 +102,10 @@ class UserDeco {
     isForceTimeValid() {
         return Date.now() <= this.getForceStopTime();
     }
-    destroyIfValid() {
-        if (this.force_level == 0 || !this.isForceTimeValid()) {
-            this.destroy();
+    clearTimeout() {
+        if (this.timeout != null) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
         }
     }
     destroy() {

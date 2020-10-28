@@ -8,6 +8,9 @@ class UserManager {
     remove(user_deco) {
         this.users.splice(this.users.indexOf(user_deco), 1);
     }
+    get(member) {
+        return this.users.find(user => user.msg.member == member);
+    }
 }
 
 module.exports = UserManager;
