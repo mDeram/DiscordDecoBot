@@ -2,9 +2,12 @@ require('dotenv').config();
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const Config = require('./config.js');
+const config = require('./configs/discord.js');
+
 const UserManager = require('./user_manager.js');
 const UserDeco = require('./user_deco.js');
+
+const InputManager = require('./input_manager.js');
 
 //const tc = require('./time_conversion.js');
 function min_to_sec(m) { return m*60; }
@@ -19,16 +22,16 @@ function milli_to_min(mi) { return milli_to_sec(sec_to_min(mi)); }
 const CANCEL_NOTHING_MESSAGE = 'Nothing to cancel';
 
 const user_manager = new UserManager();
+let input_manager;
 
 client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+    input_manager = new InputManager(client, user_manager);
 });
 
 client.on('message', msg => {
-    const config = new Config(msg.content);
-
-    if (config.isValid()) {
-        handle_deco(config.args, msg);
+    const args = config.parse(msg.content);
+    if (args != null) {
+        handle_deco(msg, args);
     }
 });
 
@@ -46,7 +49,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
     }
 });
 
-function handle_deco(args, msg) {
+function handle_deco(msg, args) {
     if (args.cancel == true) {
         let user = user_manager.get(msg.member);
         if (user == null) {

@@ -11,6 +11,9 @@ class UserManager {
     get(member) {
         return this.users.find(user => user.msg.member == member);
     }
+    count() {
+        return this.users.length;
+    }
 }
 
 module.exports = UserManager;
