@@ -9,7 +9,7 @@ class Config {
         this.handler = handler;
         this.validator = validator;
     }
-    add (content) {
+    add(content) {
         const splited_content = content.split(" ");
         
         if (this.pre_condition(splited_content) !== true) { return null; }

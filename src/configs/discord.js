@@ -3,9 +3,9 @@ const Config = require('../config.js');
 const DECO_ARG = '!deco';
 
 const args = {
-    force: false,
-    ulti: false,
-    cancel: false,
+    force: null,
+    ulti: null,
+    cancel: null,
     time: null,
 }
 
@@ -19,7 +19,7 @@ const handler = (args, arg) => {
     } else if (arg === 'ulti') {
         args.ulti = true
     } else if (arg === 'cancel') {
-        cancel = true;
+        args.cancel = true;
     } else if (!isNaN(arg)) {
         args.time = Number(arg);
     }
