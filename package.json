@@ -11,9 +11,9 @@
   "author": "Deramecourt Mathurin",
   "license": "ISC",
   "dependencies": {
-    "dependency": "0.0.1",
     "discord.js": "^12.4.0",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "yargs": "^16.2.0"
   },
   "devDependencies": {
     "mocha": "^8.2.0",

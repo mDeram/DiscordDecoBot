@@ -37,79 +37,103 @@
 module.exports = Config;*/
 
 const assert = require('assert');
-const Config = require('../../src/config.js');
 const discord_config = require('../../src/configs/discord.js');
+const input_config = require('../../src/configs/input.js');
 
-describe('Config tests', () => {
+const tests = [
+    {
+        name: 'discord',
+        config: discord_config,
+        args: {
+            valid_pre_condition: '!deco',
+            all_args: '!deco force ulti cancel 1',
+            some_valid_args: ['!deco force ulti 4', '!deco ulti cancel 2']
+        }
+    },
+    {
+        name: 'input', 
+        config: input_config,
+        args: {
+            valid_pre_condition: '',
+            all_args: 'help showu -v',
+            some_valid_args: ['help showu', 'showu -v']
+        }
+    }
+];
+
+
+describe('Configs', () => {
     function objFindFirst(obj, cb) {
         for (let i in obj) {
-            if (obj.hasOwnProperty(i)) {
-                if (cb(obj[i]) === true) {
-                    return obj[i];
-                }
+            if (obj.hasOwnProperty(i) && cb(obj[i]) === true) {
+                return obj[i];
             }
         }
         return null;
     }
-    describe('Parse discord config failed pre condition', () => {
-        it('should return null', () => {
-            assert.equal(null, discord_config.parse(''));
-        });
+    
+    it('should return null when discord failed pre-condition', () => {
+        assert.equal(null, discord_config.parse(''));
     });
-    describe('Parse discord config success pre condition', () => {
-        it('should return every arg with null value', () => {
-            const result = objFindFirst(
-                discord_config.parse('!deco'),
-                value => { return value !== null; }
-            )
+    it('should return null when input failed post-condition', () => {
+        assert.equal(null, input_config.parse(''));
+    });
+    tests.forEach(test => {
+        describe(test.name, () => {
+            it('should return every arg with null value when ' + test.name + ' succed pre-condition', () => {
+                const result = objFindFirst(
+                    test.config.parse(test.args.valid_pre_condition),
+                    value => { return value !== null; }
+                )
 
-            assert.equal(null, result);
-        });
-    });
-    describe('Parse discord config all args', () => {
-        it('should return every arg not null', () => {
-            const result = objFindFirst(
-                discord_config.parse('!deco force ulti cancel 1'),
-                value => { return value === null; }
-            )
+                assert.equal(null, result);
+            });
+        // describe(test.name + ' parse config all args', () => {
+            it('should return every arg not null', () => {
+                assert.notEqual(null, test.config.parse(test.args.all_args));
 
-            assert.equal(null, result);
+                const result = objFindFirst(
+                    test.config.parse(test.args.all_args),
+                    value => { return value === null; }
+                )
+
+                assert.equal(null, result);
+            });
+        // });
+        // describe(test.name + ' parse config with some args & reparse with other args', () => {
+            it('should only take the second call as valid args', () => {
+                let args;
+                args = test.config.parse(test.args.some_valid_args[0]);
+                args = test.config.parse(test.args.some_valid_args[1]);
+                const result = args.force !== true &&
+                               args.ulti === true &&
+                               args.cancel === true &&
+                               args.time === 2;
+                assert.equal(true, result);
+            });
+        // });
+        // describe(test.name + ' parse config with some args & add other args', () => {
+            it('should take both calls into args', () => {
+                let args;
+                args = test.config.parse(test.args.some_valid_args[0]);
+                args = test.config.add(test.args.some_valid_args[1]);
+
+                const result = args == test.config.parse(test.args.some_valid_args[1]);
+                assert.strictEqual(true, result);
+            });
+        // });
+        // describe(test.name + ' parse config some args & reset them', () => {
+            it('should return every args with null value', () => {
+                let args;
+                args = test.config.parse(test.args.all_args);
+                test.config.reset();
+                const result = objFindFirst(
+                    test.config.args,
+                    value => { return value !== null; }
+                )
+                assert.equal(null, result);
+            });
+        // });
         });
     });
-    describe('Parse discord config with some args & reparse with other args', () => {
-        it('should only take the second call as valid args', () => {
-            let args;
-            args = discord_config.parse('!deco force ulti 4');
-            args = discord_config.parse('!deco ulti cancel 2');
-            const result = args.force !== true &&
-                           args.ulti === true &&
-                           args.cancel === true &&
-                           args.time === 2;
-            assert.equal(true, result);
-        });
-    });
-    describe('Parse discord config with some args & add other args', () => {
-        it('should take both calls into args', () => {
-            let args;
-            args = discord_config.parse('!deco force ulti 4');
-            args = discord_config.add('!deco ulti cancel 2');
-            const result = args.force === true &&
-                           args.ulti === true &&
-                           args.cancel === true &&
-                           args.time === 2;
-            assert.equal(true, result);
-        });
-    });
-    describe('Parse discord config some args & reset them', () => {
-        it('should return every args with null value', () => {
-            let args;
-            args = discord_config.parse('!deco force ulti 4');
-            discord_config.reset();
-            const result = objFindFirst(
-                discord_config.args,
-                value => { return value !== null; }
-            )
-            assert.equal(null, result);
-        });
-    });
-})
+});
