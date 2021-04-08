@@ -4,7 +4,7 @@ let WARNING_TIME = tc.sec_to_milli(30);
 let FORCE_DELAY = tc.sec_to_milli(5);
 let FORCE_DURATION = tc.min_to_milli(10);
 
-if (process.env.DEBUG == true) {
+if (process.env.DEBUG) {
     WARNING_TIME = tc.sec_to_milli(10);
     FORCE_DELAY = tc.sec_to_milli(5);
     FORCE_DURATION = tc.sec_to_milli(10);
@@ -18,14 +18,13 @@ const DISCONNECT_MESSAGE = 'You asked for it, see you';
 
 class UserDeco {
     constructor(manager, msg, time, force, ulti) {
-        const init_time = Date.now();
+        this.init_time = Date.now();
         this.manager = manager;
         this.msg = msg;
         this.disconnect_in = time;
         this.is_in_force = false;
         this.force_level = Math.min(2, force + 2*ulti); //0, 1: force, 2: ulti
         this.last_deconnection_time = null;
-        this.init_time = init_time;
         this.timeout = null;
     }
     setTimeout(callback, time) {
@@ -44,7 +43,6 @@ class UserDeco {
     }
     warning() {
         this.msg.reply(WARNING_MESSAGE);
-
         this.setTimeout(this.deco, WARNING_TIME);
     }
     deco() {
@@ -69,7 +67,7 @@ class UserDeco {
         return this.msg.member.voice.channel != null;
     }
     hasReconnected() {
-        if (!this.is_in_force) { return; }
+        if (!this.is_in_force) return;
 
         if (this.isForceTimeValid()) {
             this.setTimeout(this.deco, FORCE_DELAY);
@@ -78,6 +76,7 @@ class UserDeco {
         }
     }
     hasDisconnected() {
+        //auto clear this after some time
         this.last_deconnection_time = Date.now();
 
         if (this.is_in_force) {
@@ -95,13 +94,13 @@ class UserDeco {
         return Date.now() <= this.getForceStopTime();
     }
     clearTimeout() {
-        if (this.timeout != null) {
-            clearTimeout(this.timeout);
-            this.timeout = null;
-        }
+        if (this.timeout == null) return;
+
+        clearTimeout(this.timeout);
+        this.timeout = null;
     }
     destroy() {
-        this.manager.remove(this);
+        this.manager.remove(this.member);
         delete this;
     }
 }

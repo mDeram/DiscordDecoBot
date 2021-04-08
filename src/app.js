@@ -27,14 +27,13 @@ client.on('message', msg => {
 });
 
 client.on('voiceStateUpdate', (oldMember, newMember) => {
+    const user = user_manager.get(newMember.id);
+    if (user == null) return;
+
     if (isInVoiceChannel(newMember)) {
-        const user = user_manager.get(newMember.id);
-        if (user == null) { return; }
         console.log("reconnected");
         user.hasReconnected()
     } else if (isInVoiceChannel(oldMember)) {
-        const user = user_manager.get(newMember.id);
-        if (user == null) { return; }
         console.log("disconnected");
         user.hasDisconnected()
     }
