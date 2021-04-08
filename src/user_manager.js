@@ -1,18 +1,18 @@
 class UserManager {
     constructor() {
-        this.users = [];
+        this.users = new Map();
     }
     push(user_deco) {
-        this.users.push(user_deco);
+        this.users.set(user_deco.msg.member, user_deco);
     }
-    remove(user_deco) {
-        this.users.splice(this.users.indexOf(user_deco), 1);
+    remove(member) {
+        this.users.delete(member);
     }
     get(member) {
-        return this.users.find(user => user.msg.member == member);
+        return this.users.has(member);
     }
     count() {
-        return this.users.length;
+        return this.users.size;
     }
 }
 
