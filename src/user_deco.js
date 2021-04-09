@@ -15,30 +15,26 @@ const CANCEL_MESSAGE = 'I canceled your disconnection succesfully! Have fun!';
 const CANCEL_IMPOSSIBLE_MESSAGE = 'You\'re in ultimate force mode, I can\'t cancel...';
 const WARNING_MESSAGE = 'You\'ll be disconnected in ' + tc.milli_to_sec(WARNING_TIME) + ' seconds';
 const DISCONNECT_MESSAGE = 'You asked for it, see you';
+const DISCONNECT_IMPOSSIBLE_MESSAGE = (err) => `For some reason I can't disconnect you (Error: ${err})`;
 
 class UserDeco {
-    constructor(manager, msg, time, force, ulti) {
+    constructor(manager, msg, duration, force, ulti) {
         this.init_time = Date.now();
         this.manager = manager;
         this.msg = msg;
-        this.disconnect_in = time;
-        this.is_in_force = false;
-        this.force_level = Math.min(2, force + 2*ulti); //0, 1: force, 2: ulti
-        this.last_deconnection_time = null;
+        this.deco_duration = duration; 
+        this.force_time = this.init_time + duration + FORCE_DURATION;
+        this.force_level = Math.min(2, force + 2*ulti); //0 | 1: force | 2: ulti
+        this.forcing = false;
         this.timeout = null;
     }
-    setTimeout(callback, time) {
-        this.timeout = setTimeout(() => { callback.bind(this)(); }, time);
-    }
     init() {
-        this.msg.reply(REPLY_MESSAGE(tc.milli_to_min(this.disconnect_in)));
+        this.msg.reply(REPLY_MESSAGE(tc.milli_to_min(this.deco_duration)));
 
-        const can_warn = this.disconnect_in > 2*WARNING_TIME;
-        if (can_warn) {
-            const time_before_warning = this.disconnect_in - WARNING_TIME;
-            this.setTimeout(this.warning, time_before_warning);
+        if (this.canWarn()) {
+            this.setTimeout(this.warning, this.getTimeBeforeWarning());
         } else {
-            this.setTimeout(this.deco, this.disconnect_in);
+            this.setTimeout(this.deco, this.deco_duration);
         }
     }
     warning() {
@@ -47,27 +43,31 @@ class UserDeco {
     }
     deco() {
         this.disconnect();
-        this.is_in_force = true;
+        this.forcing = true;
 
-        const can_destroy = this.force_level == 0 || !this.isForceTimeValid()
-        if (can_destroy) {
+        if (this.canDestroy())
             this.destroy();
-        }
+
+        // hasDisconnected will get called twice if the user was connected
+        // but only once if he wasn't.
+        this.hasDisconnected();
     }
     cancel() {
         if (this.force_level == 2) {
             this.msg.reply(CANCEL_IMPOSSIBLE_MESSAGE);
         } else {
-            this.clearTimeout();
             this.msg.reply(CANCEL_MESSAGE);
-            destroy();
+            this.destroy();
         }
     }
-    isInVoiceChannel() {
-        return this.msg.member.voice.channel != null;
+
+    disconnect() {
+        this.msg.member.voice.kick(DISCONNECT_MESSAGE)
+            .catch(err => this.msg.reply(DISCONNECT_IMPOSSIBLE_MESSAGE(err)));
     }
     hasReconnected() {
-        if (!this.is_in_force) return;
+        if (!this.forcing)
+            return;
 
         if (this.isForceTimeValid()) {
             this.setTimeout(this.deco, FORCE_DELAY);
@@ -76,31 +76,41 @@ class UserDeco {
         }
     }
     hasDisconnected() {
-        //auto clear this after some time
-        this.last_deconnection_time = Date.now();
+        if (!this.forcing)
+            return;
+        
+        this.setTimeout(this.destroy, this.getTimeBeforeDestroy());
+    }
 
-        if (this.is_in_force) {
-            this.clearTimeout();
-        }
+    canWarn() {
+        return this.deco_duration > 2*WARNING_TIME;
     }
-    disconnect() {
-        this.msg.member.voice.kick(DISCONNECT_MESSAGE);
-        this.hasDisconnected();
-    }
-    getForceStopTime() {
-        return this.last_deconnection_time + FORCE_DURATION;
+    canDestroy() {
+        return this.force_level == 0 || !this.isForceTimeValid();
     }
     isForceTimeValid() {
-        return Date.now() <= this.getForceStopTime();
+        return Date.now() <= this.force_time;
+    }
+    getTimeBeforeWarning() {
+        return this.deco_duration - WARNING_TIME;
+    }
+    getTimeBeforeDestroy() {
+        return this.force_time - Date.now();
+    }
+    setTimeout(callback, time) {
+        this.clearTimeout();
+        this.timeout = setTimeout(() => { callback.bind(this)(); }, time);
     }
     clearTimeout() {
-        if (this.timeout == null) return;
+        if (!this.timeout)
+            return;
 
         clearTimeout(this.timeout);
         this.timeout = null;
     }
     destroy() {
-        this.manager.remove(this.member);
+        this.clearTimeout();
+        this.manager.remove(this.msg.member.user.id);
         delete this;
     }
 }
