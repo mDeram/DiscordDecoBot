@@ -21,14 +21,17 @@ client.on('ready', () => {
 
 client.on('message', msg => {
     const args = config.parse(msg.content);
-    if (args != null) {
-        handle_deco(msg, args);
-    }
+    if (args == null)
+        return;
+    
+    handle_deco(msg, args);
 });
 
 client.on('voiceStateUpdate', (oldMember, newMember) => {
+    if (!user_manager.has(newMember.id))
+        return;
+
     const user = user_manager.get(newMember.id);
-    if (user == null) return;
 
     if (isInVoiceChannel(newMember)) {
         console.log("reconnected");
@@ -40,12 +43,13 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 });
 
 function handle_deco(msg, args) {
+    const id = msg.member.user.id;
+
     if (args.cancel == true) {
-        let user = user_manager.get(msg.member);
-        if (user == null) {
-            this.msg.reply(CANCEL_NOTHING_MESSAGE);
+        if (user_manager.has(id)) {
+            user_manager.get(id).cancel();
         } else {
-            user.cancel()
+            this.msg.reply(CANCEL_NOTHING_MESSAGE);
         }
     } else if (args.time != null) {
         let user_to_deco = new UserDeco(
@@ -56,7 +60,7 @@ function handle_deco(msg, args) {
             args.ulti
         );
         user_to_deco.init();
-        user_manager.push(user_to_deco);
+        user_manager.push(id, user_to_deco);
     }
 }
 

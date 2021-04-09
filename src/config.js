@@ -12,17 +12,17 @@ class Config {
     add(content) {
         const splited_content = content.split(" ");
         
-        if (this.pre_condition(splited_content) !== true) { return null; }
+        if (this.pre_condition(splited_content) !== true)
+            return null;
 
         splited_content.forEach(arg => {
             this.handler(this.args, arg);
         });
         
-        if (this.validator(this.args)) {
+        if (this.validator(this.args))
             return this.args;
-        } else {
-            return null;
-        }
+
+        return null;
     }
     reset() {
         delete this.args;
