@@ -7,7 +7,7 @@ const client = new Discord.Client();
 const config = require('./configs/discord.js');
 
 const UserManager = require('./user_manager.js');
-const UserDeco = require('./user_deco.js');
+const User = require('./user.js');
 const InputManager = require('./input_manager.js');
 
 const CANCEL_NOTHING_MESSAGE = 'Nothing to cancel';
@@ -20,47 +20,36 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
-    const args = config.parse(msg.content);
-    if (args == null)
-        return;
-    
-    handle_deco(msg, args);
+    handle_deco(msg, config.parse(msg.content));
 });
 
 client.on('voiceStateUpdate', (oldMember, newMember) => {
-    if (!user_manager.has(newMember.id))
-        return;
+    const id = newMember.id;
 
-    const user = user_manager.get(newMember.id);
-
-    if (isInVoiceChannel(newMember)) {
-        console.log("reconnected");
-        user.hasReconnected()
-    } else if (isInVoiceChannel(oldMember)) {
-        console.log("disconnected");
-        user.hasDisconnected()
-    }
+    if (isInVoiceChannel(newMember))
+        user_manager.hasReconnected(id);
+    else if (isInVoiceChannel(oldMember))
+        user_manager.hasDisconnected(id);
 });
 
 function handle_deco(msg, args) {
+    if (args == null)
+        return;
+
     const id = msg.member.user.id;
 
-    if (args.cancel == true) {
-        if (user_manager.has(id)) {
-            user_manager.get(id).cancel();
-        } else {
-            this.msg.reply(CANCEL_NOTHING_MESSAGE);
+    try {
+        if (args.cancel) {
+            user_manager.cancel(id);
+        } else if (args.time != null) {
+            user_manager.add(
+                id, msg, tc.min_to_milli(args.time), args.force, args.ulti
+            );
         }
-    } else if (args.time != null) {
-        let user_to_deco = new UserDeco(
-            user_manager,
-            msg,
-            tc.min_to_milli(args.time),
-            args.force,
-            args.ulti
-        );
-        user_to_deco.init();
-        user_manager.push(id, user_to_deco);
+    }
+    catch(err) {
+        console.log(err);
+        msg.reply(err);
     }
 }
 

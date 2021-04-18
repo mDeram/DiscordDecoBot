@@ -17,16 +17,17 @@ const WARNING_MESSAGE = 'You\'ll be disconnected in ' + tc.milli_to_sec(WARNING_
 const DISCONNECT_MESSAGE = 'You asked for it, see you';
 const DISCONNECT_IMPOSSIBLE_MESSAGE = (err) => `For some reason I can't disconnect you (Error: ${err})`;
 
-class UserDeco {
-    constructor(manager, msg, duration, force, ulti) {
+class User {
+    constructor(remove_cb, msg, duration, force, ulti) {
         this.init_time = Date.now();
-        this.manager = manager;
+        this.remove_cb = remove_cb;
         this.msg = msg;
         this.deco_duration = duration; 
         this.force_time = this.init_time + duration + FORCE_DURATION;
         this.force_level = Math.min(2, force + 2*ulti); //0 | 1: force | 2: ulti
         this.forcing = false;
         this.timeout = null;
+        this.init();
     }
     init() {
         this.msg.reply(REPLY_MESSAGE(tc.milli_to_min(this.deco_duration)));
@@ -110,9 +111,9 @@ class UserDeco {
     }
     destroy() {
         this.clearTimeout();
-        this.manager.remove(this.msg.member.user.id);
+        this.remove_cb();
         delete this;
     }
 }
 
-module.exports = UserDeco;
+module.exports = User;
