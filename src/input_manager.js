@@ -12,10 +12,10 @@ class InputManager {
         this.user_manager = user_manager;
         input.on('line', content => {
             const args = config.parse(content);
-            if (args != null) {
-                this.handleInput(args);
-            }
+            this.handleInput(args);
         });
+    }
+    onClientReady() {
         this.presentation();
     }
     presentation() {
@@ -23,6 +23,9 @@ class InputManager {
         console.log('Enter help for command infos');
     }
     handleInput(args) {
+        if (args == null)
+            return;
+
         if        (args.help) {
             this.help();
         } else if (args.showu) {

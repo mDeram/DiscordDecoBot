@@ -13,10 +13,10 @@ const InputManager = require('./input_manager.js');
 const CANCEL_NOTHING_MESSAGE = 'Nothing to cancel';
 
 const user_manager = new UserManager();
-let input_manager;
+const input_manager = new InputManager(client, user_manager);
 
 client.on('ready', () => {
-    input_manager = new InputManager(client, user_manager);
+    input_manager.onClientReady();
 });
 
 client.on('message', msg => {
