@@ -12,9 +12,20 @@ class UserManager {
     push(id, user) {
         this.users.set(id, user);
     }
-
     remove(id) {
         this.users.delete(id);
+    }
+
+    forEach(cb) {
+        this.users.forEach(cb);
+    }
+    flush(cb) {
+        const userIter = this.users.values();
+
+        for (const user of userIter) {
+            cb(user);
+            user.destroy();
+        }
     }
     get(id) {
         return this.users.get(id);

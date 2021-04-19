@@ -4,8 +4,8 @@ const args = {
     help: null,
     showu: null,
     verbose: null,
-    //debug: false,
-    //nodebug: false,
+    flush: null,
+    nowarn: null,
 }
 
 const pre_condition = args => {
@@ -19,6 +19,10 @@ const handler = (args, arg) => {
         args.showu = true;
     } else if (arg === '-v') {
         args.verbose = true;
+    } else if (arg === 'flush') {
+        args.flush = true;
+    } else if (arg === '-no-warn') {
+        args.nowarn = true;
     }
 }
 

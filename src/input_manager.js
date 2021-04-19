@@ -1,6 +1,8 @@
 const readline = require('readline')
 const config = require('./configs/input.js');
 
+const WARNING_USER_DELETED = 'WARNING, you will not get disconnected because the bot owner deleted you from the user database';
+
 const input = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -26,20 +28,35 @@ class InputManager {
         if (args == null)
             return;
 
-        if        (args.help) {
-            this.help();
-        } else if (args.showu) {
-            this.showu(args.verbose);
-        }
+        if      (args.help)     this.help();
+        else if (args.showu)    this.showu(args.verbose);
+        else if (args.flush)    this.flush(args.nowarn);
     }
     help() {
-        console.log('I\'ll help you later');
+        console.log('Available commands:\n');
+
+        console.group();
+        console.log('showu [-v]         (list deco users, -v verbose)');
+        console.log('flush [-no-warn]   (flush all users, -no-warn without warning)');
+        console.groupEnd();
     }
     showu(verbose) {
         if (verbose) {
-            console.log(this.user_manager);
+            console.log('Users: [id] => User\n');
+            this.user_manager.forEach((value, key) => {
+                console.log(`[${key}] => `, value);
+            });
+            console.log('--------------------------------------');
         }
+
         console.log('Users count: ' + this.user_manager.count());
+    }
+    flush(nowarn) {
+        let cb = (user) => user.msg.reply(WARNING_USER_DELETED);
+        if (nowarn)
+            cb = () => {};
+
+        this.user_manager.flush(cb);
     }
 }
 
