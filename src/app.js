@@ -48,7 +48,6 @@ function handle_deco(msg, args) {
         }
     }
     catch(err) {
-        console.log(err);
         msg.reply(err);
     }
 }

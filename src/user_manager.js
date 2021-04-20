@@ -39,7 +39,7 @@ class UserManager {
 
     add(id, msg, duration, force, ulti) {
         if (this.has(id))
-            throw ALREADY_REGISTERED_EXCEPTION;
+            throw ALREADY_REGISTERED_EXCEPTION(msg.content);
 
         const user = new User(() => this.remove(id), msg, duration, force, ulti);
         this.push(id, user);
