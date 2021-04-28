@@ -1,8 +1,9 @@
 const User = require('./user.js');
 
 const ALREADY_REGISTERED_EXCEPTION = (content) =>
-    `User already registered, use "!deco cancel" before using "${content}"`;
+    `You're already registered, use "!deco cancel" before using "${content}"`;
 const CANCEL_NOTHING_EXCEPTION = 'Nothing to cancel';
+const STATUS_USER_NOT_REGISTERED = 'You\'re not registered';
 
 class UserManager {
     constructor() {
@@ -37,6 +38,14 @@ class UserManager {
         return this.users.size;
     }
 
+    replyStatus(id, msg) {
+        if (!this.has(id)) {
+            msg.reply(STATUS_USER_NOT_REGISTERED);
+            return;
+        }
+
+        msg.reply(this.get(id).getStatus());
+    }
     add(id, msg, duration, force, ulti) {
         if (this.has(id))
             throw ALREADY_REGISTERED_EXCEPTION(msg.content);

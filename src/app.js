@@ -50,6 +50,10 @@ function handle_deco(msg, args) {
     catch(err) {
         msg.reply(err);
     }
+
+    if (args.status) {
+        user_manager.replyStatus(id, msg);
+    }
 }
 
 function isInVoiceChannel(member) {

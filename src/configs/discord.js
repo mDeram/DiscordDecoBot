@@ -7,6 +7,7 @@ const args = {
     ulti: null,
     cancel: null,
     time: null,
+    status: null,
 }
 
 const pre_condition = args => {
@@ -22,6 +23,8 @@ const handler = (args, arg) => {
         args.cancel = true;
     } else if (!isNaN(arg)) {
         args.time = Number(arg);
+    } else if (arg === 'status') {
+        args.status = true;
     }
 }
 

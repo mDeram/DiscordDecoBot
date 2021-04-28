@@ -82,6 +82,9 @@ class User {
         
         this.setTimeout(this.destroy, this.getTimeBeforeDestroy());
     }
+    getStatus() {
+        return this.forcing;
+    }
 
     canWarn() {
         return this.deco_duration > 2*WARNING_TIME;
