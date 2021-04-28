@@ -25,12 +25,18 @@ class InputManager {
         console.log('Enter help for command infos');
     }
     handleInput(args) {
-        if (args == null)
+        if (args == null) {
+            this.invalidCommand();
             return;
+        }
 
         if      (args.help)     this.help();
         else if (args.showu)    this.showu(args.verbose);
         else if (args.flush)    this.flush(args.nowarn);
+    }
+    invalidCommand() {
+        console.log('Command is invalid, try:\n');
+        this.help();
     }
     help() {
         console.log('Available commands:\n');
