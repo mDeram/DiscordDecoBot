@@ -4,12 +4,14 @@ const tc = require('./time_conversion.js');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const config = require('./configs/discord.js');
+const DiscordConfig = require('./configs/discord.js');
+const config = new DiscordConfig();
 
 const UserManager = require('./user_manager.js');
 const User = require('./user.js');
 const InputManager = require('./input_manager.js');
 
+const INPUT_EXCEPTION_MESSAGE = (exception) => `Oops, I can\'t recognize your message as valid: ${exception}`;
 const CANCEL_NOTHING_MESSAGE = 'Nothing to cancel';
 
 const user_manager = new UserManager();
@@ -20,6 +22,16 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
+    let parsedArgs;
+
+    try {
+        parsedArgs = config.parse(msg.content);
+    }
+    catch(exception) {
+        msg.reply(INPUT_EXCEPTION_MESSAGE(exception));
+        return;
+    }
+
     handle_deco(msg, config.parse(msg.content));
 });
 
@@ -43,7 +55,7 @@ function handle_deco(msg, args) {
             user_manager.cancel(id);
         } else if (args.time != null) {
             user_manager.add(
-                id, msg, tc.min_to_milli(args.time), args.force, args.ulti
+                id, msg, args.time, args.force, args.ulti
             );
         }
     }

@@ -1,33 +1,98 @@
 const Config = require('../config.js');
+const tc = require('../time_conversion.js');
 
-const DECO_ARG = '!deco';
+const DECO_PREFIX = '!deco';
 
-const args = {
-    force: null,
-    ulti: null,
-    cancel: null,
-    time: null,
-    status: null,
-}
+const EXCEPTION_INVALID_COMMAND = 'the command you typed in does not exist';
+const EXCEPTION_TO_MUCH_ARGUMENTS = (args) => `there are ${args.length} extra arguments ('${args.join(",")}')`;
+const EXCEPTION_INVALID_TIME_FORMAT = 'invalid time format, valids time format would look like \'2h50m\' or \'40m20s\'';
+const EXCEPTION_TIME_TOO_BIG = 'deco duration cannot exceed 24h';
 
-const pre_condition = args => {
-    return args[0] == DECO_ARG;
-}
+class DiscordConfig {
+    args = {
+        status: null,
+        cancel: null,
+        time: null,
+        force: null,
+        ulti: null,
+        timezone: null,
+    }
 
-const handler = (args, arg) => {
-    if        (arg === 'force') {
-        args.force = true;
-    } else if (arg === 'ulti') {
-        args.ulti = true
-    } else if (arg === 'cancel') {
-        args.cancel = true;
-    } else if (!isNaN(arg)) {
-        args.time = Number(arg);
-    } else if (arg === 'status') {
-        args.status = true;
+    parse(rawInput) {
+        const inputs = rawInput.trim().split(/ +/);
+
+        if (!this.isPrefixValid(inputs.shift()))
+            return null;
+
+        return this.handleArgs(inputs);
+    }
+    isPrefixValid(prefix) {
+        return DECO_PREFIX == prefix;
+    }
+    handleArgs(inputs) {
+        let args = Object.assign({}, this.args);
+
+        switch (inputs.shift()) {
+            case 'status':
+                args.status = true;
+                break;
+            case 'cancel':
+                args.cancel = true;
+                break;
+            case 'in':
+            case 'at':
+                args.time = this.parseTime(inputs.shift());
+                if (['force', 'ulti'].includes(inputs[0]))
+                    args[inputs.shift()] = true
+                break;
+            case 'timezone':
+                args.timezone = this.parseTimezone(inputs.shift());
+                break;
+            default:
+                throw EXCEPTION_INVALID_COMMAND;
+        }
+
+        if (inputs.length)
+            throw EXCEPTION_TO_MUCH_ARGUMENTS(inputs);
+
+        return args;
+    }
+    parseTime(rawTime) {
+        // Valid time examples: 5h6m50s / 20s / 20h20s
+
+        let reversedTime = rawTime.split("").reverse().join("");
+
+        let time = {
+            h: '',
+            m: '',
+            s: ''
+        }
+
+        let current = '';
+
+        for (let c of reversedTime) {
+            if (['h', 'm', 's'].includes(c) && (current == '' || c < current))
+                current = c;
+            else if (!isNaN(c) && current != '')
+                time[current] = c + time[current];
+            else
+                throw EXCEPTION_INVALID_TIME_FORMAT;
+        }
+        console.log(time);
+
+        let totalMs = tc.hour_to_milli(Number(time.h))
+                    + tc.min_to_milli(Number(time.m))
+                    + tc.sec_to_milli(Number(time.s));
+
+        if (totalMs > tc.hour_to_milli(24))
+            throw EXCEPTION_TIME_TOO_BIG; 
+
+        return totalMs;
+    }
+    parseTimezone(tz) {
+
     }
 }
 
-const validator = _ => { return true; }
 
-module.exports = new Config(pre_condition, args, handler, validator);
+module.exports = DiscordConfig;

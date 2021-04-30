@@ -1,4 +1,6 @@
 module.exports =  {
+    hour_to_milli: function(h) { return h*3600000; },
+
     min_to_sec: function(m) { return m*60; },
     min_to_milli: function(m) { return m*60000; },
 
