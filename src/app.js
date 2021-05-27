@@ -11,7 +11,7 @@ const UserManager = require('./user_manager.js');
 const User = require('./user.js');
 const InputManager = require('./input_manager.js');
 
-const INPUT_EXCEPTION_MESSAGE = (exception) => `Oops, I can\'t recognize your message as valid: ${exception}`;
+const INPUT_EXCEPTION_MESSAGE = (exception) => `Oops, I'm not sure to understand what you mean: ${exception}`;
 const CANCEL_NOTHING_MESSAGE = 'Nothing to cancel';
 
 const user_manager = new UserManager();

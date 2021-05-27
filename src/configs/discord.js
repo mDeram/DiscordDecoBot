@@ -4,7 +4,7 @@ const tc = require('../time_conversion.js');
 const DECO_PREFIX = '!deco';
 
 const EXCEPTION_INVALID_COMMAND = 'the command you typed in does not exist';
-const EXCEPTION_TO_MUCH_ARGUMENTS = (args) => `there are ${args.length} extra arguments ('${args.join(",")}')`;
+const EXCEPTION_TO_MUCH_ARGUMENTS = (inputs) => `there are ${inputs.length} extra arguments ('${inputs.join(",")}')`;
 const EXCEPTION_INVALID_TIME_FORMAT = 'invalid time format, valids time format would look like \'2h50m\' or \'40m20s\'';
 const EXCEPTION_TIME_TOO_BIG = 'deco duration cannot exceed 24h';
 
