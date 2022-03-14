@@ -22,17 +22,21 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
+    if (msg.author.bot)
+        return;
+
     let parsedArgs;
 
+    console.log(msg.content);
     try {
         parsedArgs = config.parse(msg.content);
     }
     catch(exception) {
-        msg.reply(INPUT_EXCEPTION_MESSAGE(exception));
+        msg.reply(INPUT_EXCEPTION_MESSAGE(exception.message));
         return;
     }
 
-    handle_deco(msg, config.parse(msg.content));
+    handle_deco(msg, parsedArgs);
 });
 
 client.on('voiceStateUpdate', (oldMember, newMember) => {

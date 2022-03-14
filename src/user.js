@@ -32,7 +32,8 @@ class User {
     init() {
         this.msg.reply(REPLY_MESSAGE(tc.milli_to_min(this.deco_duration)));
 
-        if (this.canWarn()) {
+        const canWarn = this.deco_duration > 2*WARNING_TIME;
+        if (canWarn) {
             this.setTimeout(this.warning, this.getTimeBeforeWarning());
         } else {
             this.setTimeout(this.deco, this.deco_duration);
@@ -46,7 +47,8 @@ class User {
         this.disconnect();
         this.forcing = true;
 
-        if (this.canDestroy())
+        const canDestroy = this.force_level == 0 || !this.isForceTimeValid();
+        if (canDestroy)
             this.destroy();
 
         // hasDisconnected will get called twice if the user was connected
@@ -86,12 +88,6 @@ class User {
         return this.forcing;
     }
 
-    canWarn() {
-        return this.deco_duration > 2*WARNING_TIME;
-    }
-    canDestroy() {
-        return this.force_level == 0 || !this.isForceTimeValid();
-    }
     isForceTimeValid() {
         return Date.now() <= this.force_time;
     }

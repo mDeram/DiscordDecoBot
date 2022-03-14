@@ -3,10 +3,22 @@ const tc = require('../time_conversion.js');
 
 const DECO_PREFIX = '!deco';
 
-const EXCEPTION_INVALID_COMMAND = 'the command you typed in does not exist';
-const EXCEPTION_TO_MUCH_ARGUMENTS = (inputs) => `there are ${inputs.length} extra arguments ('${inputs.join(",")}')`;
 const EXCEPTION_INVALID_TIME_FORMAT = 'invalid time format, valids time format would look like \'2h50m\' or \'40m20s\'';
 const EXCEPTION_TIME_TOO_BIG = 'deco duration cannot exceed 24h';
+
+class CommandException extends Error {
+    constructor() {
+        super('the command you typed in does not exist');
+        this.name = "CommandException";
+    }
+}
+
+class ArgumentsException extends Error {
+    constructor(inputs) {
+        super(`there are ${inputs.length} extra arguments ('${inputs.join(",")}')`);
+        this.name = "ArgumentsException";
+    }
+}
 
 class DiscordConfig {
     args = {
@@ -49,11 +61,11 @@ class DiscordConfig {
                 args.timezone = this.parseTimezone(inputs.shift());
                 break;
             default:
-                throw EXCEPTION_INVALID_COMMAND;
+                throw new CommandException();
         }
 
         if (inputs.length)
-            throw EXCEPTION_TO_MUCH_ARGUMENTS(inputs);
+            throw new ArgumentsException(inputs);
 
         return args;
     }
