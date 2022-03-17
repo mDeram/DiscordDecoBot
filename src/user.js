@@ -22,7 +22,7 @@ class User {
         this.init_time = Date.now();
         this.remove_cb = remove_cb;
         this.msg = msg;
-        this.deco_duration = duration; 
+        this.deco_duration = duration;
         this.force_time = this.init_time + duration + FORCE_DURATION;
         this.force_level = Math.min(2, force + 2*ulti); //0 | 1: force | 2: ulti
         this.forcing = false;
@@ -65,7 +65,7 @@ class User {
     }
 
     disconnect() {
-        this.msg.member.voice.kick(DISCONNECT_MESSAGE)
+        this.msg.member.voice.disconnect(DISCONNECT_MESSAGE)
             .catch(err => this.msg.reply(DISCONNECT_IMPOSSIBLE_MESSAGE(err)));
     }
     hasReconnected() {
@@ -81,7 +81,7 @@ class User {
     hasDisconnected() {
         if (!this.forcing)
             return;
-        
+
         this.setTimeout(this.destroy, this.getTimeBeforeDestroy());
     }
     getStatus() {
